@@ -1,0 +1,9 @@
+{
+  "total_clauses": 5842,
+  "requirement_like": 1756,
+  "subject_extracted": 2009,
+  "action_extracted": 2144,
+  "modal_detected": 2177,
+  "deadline_detected": 139,
+  "duration_detected": 357
+}
