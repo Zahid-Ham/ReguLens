@@ -76,6 +76,18 @@ __all__ = [
     "PolicyMappingResponse",
 ]
 
+from app.schemas.analysis_history import (
+    AnalysisDetailResponse,
+    AnalysisHistoryItem,
+    AnalysisHistoryListResponse,
+)
+from app.schemas.ai_insights import (
+    AnalysisInsightsResponse,
+    ExecutiveComplianceSummary,
+    PolicyRecommendation,
+    RegulatoryChangeInsight,
+    TopComplianceGapInsight,
+)
 from app.schemas.policy_mapping import (
     ComplianceGapHighlight,
     ParameterMismatch,
@@ -88,3 +100,15 @@ from app.schemas.policy_mapping import (
     RegulatoryEvidence,
     RegulatoryRequirementItem,
 )
+
+__all__.extend([
+    "AnalysisHistoryItem",
+    "AnalysisHistoryListResponse",
+    "AnalysisDetailResponse",
+    "ExecutiveComplianceSummary",
+    "TopComplianceGapInsight",
+    "PolicyRecommendation",
+    "RegulatoryChangeInsight",
+    "AnalysisInsightsResponse",
+])
+

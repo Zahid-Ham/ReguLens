@@ -36,6 +36,9 @@ class Settings(BaseSettings):
     # Data directory path (relative to backend root by default)
     DATA_DIR: Path = BACKEND_ROOT / "data"
 
+    # Database configuration (defaults to local SQLite database in DATA_DIR)
+    DATABASE_URL: str | None = None
+
     # Optional third-party API keys (loaded from environment only)
     GROQ_API_KEY: str | None = None
     FIREBASE_PROJECT_ID: str | None = None

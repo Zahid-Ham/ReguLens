@@ -4,15 +4,31 @@ Configures application lifecycle, CORS middleware for React/Vite development,
 custom exception handling, and API routing.
 """
 
+from contextlib import asynccontextmanager
 from fastapi import FastAPI, Request, status
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import JSONResponse
 
 from app.api import api_router
 from app.config import get_settings
+from app.core.database import init_db
 from app.core.exceptions import DataCorruptedError, DataFileNotFoundError, ReguLensException
+from app.dependencies import get_analysis_history_service
 
 settings = get_settings()
+
+
+@asynccontextmanager
+async def lifespan(app: FastAPI):
+    """Lifecycle manager to initialize SQLite database tables and seed baseline analysis."""
+    try:
+        init_db()
+        history_svc = get_analysis_history_service()
+        history_svc.seed_canonical_psl_analysis()
+    except Exception as e:
+        print(f"[ReguLens Lifespan] Database startup warning: {e}")
+    yield
+
 
 app = FastAPI(
     title=settings.APP_NAME,
@@ -20,6 +36,7 @@ app = FastAPI(
     description="Explainable NLP-based framework for regulatory requirement extraction, semantic change detection, and compliance gap analysis.",
     docs_url="/docs",
     redoc_url="/redoc",
+    lifespan=lifespan,
 )
 
 # Configure CORS for local React/Vite frontend

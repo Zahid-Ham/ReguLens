@@ -34,6 +34,7 @@ from app.services.dynamic_nlp_pipeline import DynamicNLPPipeline
 from app.services.regulation_service import RegulationService
 
 
+from app.services.analysis_history_service import AnalysisHistoryService
 from app.services.compliance.policy_mapping_service import PolicyMappingService
 
 
@@ -85,6 +86,7 @@ class AnalysisJobService:
         dynamic_nlp_pipeline: Optional[DynamicNLPPipeline] = None,
         dynamic_comparison_service: Optional[DynamicComparisonService] = None,
         policy_mapping_service: Optional[PolicyMappingService] = None,
+        history_service: Optional[AnalysisHistoryService] = None,
     ) -> None:
         self.data_repo = data_repo
         self.regulation_service = regulation_service
@@ -97,6 +99,7 @@ class AnalysisJobService:
         self.policy_mapping_service = (
             policy_mapping_service or PolicyMappingService()
         )
+        self.history_service = history_service or AnalysisHistoryService()
         self._jobs: Dict[str, dict] = {}
 
     def _get_document_text_and_title(self, document_id: str) -> Tuple[str, str]:
@@ -309,6 +312,40 @@ class AnalysisJobService:
         if (prev_id, curr_id) == self.PRECOMPUTED_PAIR or (
             prev_id == "rbi_psl_2020_official" and curr_id == "rbi_a8d0f9a98495"
         ):
+            # Ensure persisted in SQLite
+            try:
+                self.history_service.create_or_init_analysis(
+                    analysis_id=self.PRECOMPUTED_ANALYSIS_ID,
+                    title="PSL Framework Update",
+                    previous_document_id=prev_id,
+                    current_document_id=curr_id,
+                    previous_document_title=doc_prev.title,
+                    current_document_title=doc_curr.title,
+                    previous_document_filename="rbi_psl_2020_official.pdf",
+                    current_document_filename="rbi_psl_2025.pdf",
+                    company_policy_document_id=request.company_policy_document_id,
+                    mode="precomputed",
+                )
+                psl_ov = self.analysis_service.get_analysis_overview()
+                self.history_service.update_analysis_complete(
+                    analysis_id=self.PRECOMPUTED_ANALYSIS_ID,
+                    overview_summary={
+                        "total_records": psl_ov.total_records,
+                        "substantive_changes": psl_ov.substantive_changes,
+                        "administrative_changes": psl_ov.administrative_changes,
+                        "wording_only": psl_ov.wording_only,
+                        "added_candidates": psl_ov.added_candidates,
+                        "removed_candidates": psl_ov.removed_candidates,
+                        "unchanged": psl_ov.unchanged,
+                        "high_materiality": psl_ov.high_materiality,
+                        "medium_materiality": psl_ov.medium_materiality,
+                        "low_materiality": psl_ov.low_materiality,
+                    },
+                    duration_seconds=105.0,
+                )
+            except Exception as pe:
+                print(f"[AnalysisJobService] PSL persistence note: {pe}")
+
             job_record = {
                 "analysis_id": self.PRECOMPUTED_ANALYSIS_ID,
                 "status": "complete",
@@ -422,6 +459,46 @@ class AnalysisJobService:
             },
             "total_records": len(changes),
         }
+
+        # Persist to SQLite database
+        try:
+            clean_title = f"{curr_title[:45]} Analysis"
+            if "regu" in curr_title.lower() or "cdd" in curr_title.lower() or "kyc" in curr_title.lower():
+                clean_title = f"{curr_title.replace('.pdf', '')} Analysis"
+
+            self.history_service.create_or_init_analysis(
+                analysis_id=analysis_id,
+                title=clean_title,
+                previous_document_id=prev_id,
+                current_document_id=curr_id,
+                previous_document_title=prev_title,
+                current_document_title=curr_title,
+                previous_document_filename=getattr(doc_prev, "filename", None) or f"{prev_id}.pdf",
+                current_document_filename=getattr(doc_curr, "filename", None) or f"{curr_id}.pdf",
+                company_policy_document_id=policy_id,
+                company_policy_document_title=policy_title,
+                company_policy_document_filename=f"{policy_id}.pdf" if policy_id else None,
+                mode="dynamic",
+            )
+
+            pol_resp = self.policy_mapping_service.get_policy_mapping(analysis_id)
+            pol_sum = pol_resp.summary.model_dump() if pol_resp else {}
+            pol_maps = [m.model_dump() for m in pol_resp.mappings] if pol_resp else []
+            chg_data = [c.model_dump() for c in changes]
+            ov_data = overview.model_dump()
+
+            duration = round(max(1.0, (len(prev_clauses) + len(curr_clauses)) * self.CLAUSE_PACE_SECONDS), 1)
+
+            self.history_service.update_analysis_complete(
+                analysis_id=analysis_id,
+                overview_summary=ov_data,
+                policy_summary=pol_sum,
+                changes_data=chg_data,
+                policy_mappings_data=pol_maps,
+                duration_seconds=duration,
+            )
+        except Exception as dbe:
+            print(f"[AnalysisJobService] Warning: Failed to persist dynamic analysis: {dbe}")
 
         return AnalysisCreateResponse(
             analysis_id=analysis_id,
@@ -668,6 +745,20 @@ class AnalysisJobService:
         idx = clause_index - 1
         if 0 <= idx < len(doc_clauses.clauses):
             return doc_clauses.clauses[idx]
+        return None
+
+    def get_clause_by_clause_id(self, analysis_id: str, clause_id: str) -> Optional[ProcessedClauseNLP]:
+        """Retrieve single clause NLP annotations by clause_id across both document roles."""
+        clean_id = analysis_id.strip()
+        clean_clause_id = clause_id.strip().lower()
+
+        # Check current document first, then previous
+        for role in ("current", "previous"):
+            doc_clauses = self.get_document_clauses(clean_id, role)
+            if doc_clauses and doc_clauses.clauses:
+                for cl in doc_clauses.clauses:
+                    if cl.clause_id.lower() == clean_clause_id or (cl.provision_id and str(cl.provision_id).lower() == clean_clause_id):
+                        return cl
         return None
 
     def get_job_results(self, analysis_id: str) -> Optional[AnalysisResultsResponse]:

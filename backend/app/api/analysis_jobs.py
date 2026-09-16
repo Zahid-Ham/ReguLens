@@ -2,7 +2,7 @@
 
 from fastapi import APIRouter, Depends, HTTPException, status
 
-from app.dependencies import get_analysis_job_service
+from app.dependencies import get_analysis_job_service, get_nlp_service
 from app.schemas.analysis_job import (
     AnalysisCreateRequest,
     AnalysisCreateResponse,
@@ -12,6 +12,7 @@ from app.schemas.analysis_job import (
     ProcessedClauseNLP,
 )
 from app.services.analysis_job_service import AnalysisJobService
+from app.services.nlp_service import NLPService
 
 router = APIRouter(prefix="/analysis", tags=["Analysis Workflow & Jobs"])
 
@@ -102,6 +103,33 @@ async def get_clause_detail(
             detail=f"Clause at index {clause_index} for analysis '{analysis_id}' not found.",
         )
     return res
+
+
+@router.get(
+    "/{analysis_id}/nlp/clauses/{clause_id}",
+    summary="Get Granular Processed Clause NLP Detail by Clause ID",
+    description="Retrieve single clause NLP annotations by clause ID for precomputed or dynamic analysis.",
+)
+async def get_clause_nlp_detail_by_id(
+    analysis_id: str,
+    clause_id: str,
+    job_service: AnalysisJobService = Depends(get_analysis_job_service),
+    nlp_service: NLPService = Depends(get_nlp_service),
+):
+    """Retrieve single clause NLP annotations by clause ID."""
+    clean_id = analysis_id.strip()
+    if clean_id in ("psl-2020-2025", job_service.PRECOMPUTED_ANALYSIS_ID):
+        detail = nlp_service.get_clause_nlp_detail(clause_id=clause_id)
+        if detail:
+            return detail
+
+    cl = job_service.get_clause_by_clause_id(analysis_id=clean_id, clause_id=clause_id)
+    if not cl:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail=f"Clause '{clause_id}' for analysis '{analysis_id}' not found.",
+        )
+    return cl
 
 
 @router.get(

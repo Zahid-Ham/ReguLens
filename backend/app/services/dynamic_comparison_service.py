@@ -585,8 +585,76 @@ class DynamicComparisonService:
 
         return analysis_id, overview, changes
 
+    def _hydrate_from_db_if_needed(self, analysis_id: str) -> None:
+        """Hydrate analysis from SQLite if not present in memory."""
+        clean_id = analysis_id.strip()
+        if clean_id in self._analysis_store:
+            return
+
+        try:
+            from app.core.database import SessionLocal
+            from app.models.analysis import AnalysisRecord
+            db = SessionLocal()
+            try:
+                rec = db.query(AnalysisRecord).filter(AnalysisRecord.id == clean_id).first()
+                if rec and rec.overview_summary:
+                    # Reconstruct AnalysisOverview
+                    ov_data = rec.overview_summary
+                    overview = AnalysisOverview(
+                        analysis_id=rec.id,
+                        previous_document_id=rec.previous_document_id or ov_data.get("previous_document_id", "prev_doc"),
+                        current_document_id=rec.current_document_id or ov_data.get("current_document_id", "curr_doc"),
+                        previous_document_title=rec.previous_document_title or ov_data.get("previous_document_title", "Previous Document"),
+                        current_document_title=rec.current_document_title or ov_data.get("current_document_title", "Current Document"),
+                        total_records=ov_data.get("total_records", 0),
+                        substantive_changes=ov_data.get("substantive_changes", 0),
+                        administrative_changes=ov_data.get("administrative_changes", 0),
+                        wording_only=ov_data.get("wording_only", 0),
+                        added_candidates=ov_data.get("added_candidates", 0),
+                        removed_candidates=ov_data.get("removed_candidates", 0),
+                        unchanged=ov_data.get("unchanged", 0),
+                        high_materiality=ov_data.get("high_materiality", 0),
+                        medium_materiality=ov_data.get("medium_materiality", 0),
+                        low_materiality=ov_data.get("low_materiality", 0),
+                        modality_changes=ov_data.get("modality_changes", 0),
+                        monetary_changes=ov_data.get("monetary_changes", 0),
+                        percentage_changes=ov_data.get("percentage_changes", 0),
+                        duration_changes=ov_data.get("duration_changes", 0),
+                        deadline_changes=ov_data.get("deadline_changes", 0),
+                        date_changes=ov_data.get("date_changes", 0),
+                        methodology_notes=ov_data.get("methodology_notes", {
+                            "alignment_engine": "Hybrid (Provision Identity + TF-IDF Lexical + Semantic Token Alignment)",
+                            "materiality_scoring": "Deterministic explainable parameter impact assessment",
+                        }),
+                    )
+
+
+                    changes_list = []
+                    raw_changes = rec.changes_data
+                    if isinstance(raw_changes, list):
+                        for c_dict in raw_changes:
+                            if isinstance(c_dict, dict):
+                                try:
+                                    changes_list.append(ChangeRecord(**c_dict))
+                                except Exception:
+                                    pass
+
+                    self._analysis_store[clean_id] = {
+                        "analysis_id": clean_id,
+                        "overview": overview,
+                        "changes": changes_list,
+                        "previous_clauses": {},
+                        "current_clauses": {},
+                        "created_at": rec.created_at.isoformat() if rec.created_at else None,
+                    }
+            finally:
+                db.close()
+        except Exception as e:
+            print(f"[DynamicComparisonService] Hydration warning: {e}")
+
     def get_analysis_overview(self, analysis_id: str) -> Optional[AnalysisOverview]:
         """Retrieve overview for a dynamic analysis job."""
+        self._hydrate_from_db_if_needed(analysis_id)
         rec = self._analysis_store.get(analysis_id.strip())
         return rec["overview"] if rec else None
 
@@ -600,6 +668,7 @@ class DynamicComparisonService:
         offset: int = 0,
     ) -> Tuple[List[ChangeRecord], int]:
         """Query and paginate changes for a dynamic analysis job."""
+        self._hydrate_from_db_if_needed(analysis_id)
         rec = self._analysis_store.get(analysis_id.strip())
         if not rec:
             return [], 0
@@ -624,6 +693,7 @@ class DynamicComparisonService:
 
     def get_analysis_change(self, analysis_id: str, change_id: str) -> Optional[ChangeRecord]:
         """Retrieve single change record by change_id."""
+        self._hydrate_from_db_if_needed(analysis_id)
         rec = self._analysis_store.get(analysis_id.strip())
         if not rec:
             return None

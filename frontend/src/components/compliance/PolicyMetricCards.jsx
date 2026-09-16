@@ -83,8 +83,8 @@ export function PolicyMetricCards({ summary, hasPolicy }) {
             key={c.id}
             className="bg-white border border-[#E0E8DE] rounded-2xl p-4 sm:p-4.5 flex flex-col justify-between shadow-2xs hover:border-[#CAD8C9] transition-all group"
           >
-            <div className="flex items-center justify-between mb-2">
-              <span className="text-[12.5px] font-semibold text-[#112117] line-clamp-1">{c.label}</span>
+            <div className="flex items-start justify-between gap-2 mb-2">
+              <span className="text-[12px] font-semibold text-[#112117] leading-tight min-h-[32px]">{c.label}</span>
               <div className={`w-8 h-8 rounded-xl ${c.iconBg} flex items-center justify-center flex-shrink-0 shadow-2xs`}>
                 <Icon className="w-4 h-4" />
               </div>

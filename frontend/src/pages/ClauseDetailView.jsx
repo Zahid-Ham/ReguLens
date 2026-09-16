@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useMemo } from 'react'
-import { useParams, useNavigate, useLocation, Link } from 'react-router-dom'
+import { useParams, useNavigate, useLocation, useSearchParams, Link } from 'react-router-dom'
 import {
   ArrowLeft,
   ArrowRight,
@@ -22,7 +22,12 @@ export default function ClauseDetailView() {
   const { id } = useParams()
   const navigate = useNavigate()
   const location = useLocation()
-  const analysisId = location.state?.analysisId || 'psl-2020-2025'
+  const [searchParams] = useSearchParams()
+  const analysisId =
+    location.state?.analysisId ||
+    searchParams.get('analysis_id') ||
+    searchParams.get('id') ||
+    'psl-2020-2025'
 
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState(null)
@@ -193,32 +198,46 @@ ${changeRecord.final_explanation || changeRecord.explanation || 'N/A'}
     <div className="flex flex-col space-y-5 pb-16 select-text">
       {/* 1. Breadcrumbs & Top Action Bar */}
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
-        <div className="flex flex-col space-y-1">
-          <div className="flex items-center gap-1.5 text-xs text-[#667085]">
-            <Link to="/analysis/new" className="hover:text-[#132E22]">
-              Analysis
+        <div className="flex flex-col space-y-2">
+          {/* Enhanced Breadcrumb Trail */}
+          <nav aria-label="Breadcrumb" className="flex items-center gap-2 text-xs text-[#55675C]">
+            <Link
+              to="/analysis/history"
+              className="hover:text-[#112117] transition-colors font-medium"
+            >
+              Analysis History
             </Link>
-            <span>/</span>
-            <Link to="/analysis/results" state={{ analysisId }} className="hover:text-[#132E22]">
-              Results
+            <span className="text-[#A3B3A6] select-none">/</span>
+            <Link
+              to={`/analysis/results?id=${encodeURIComponent(analysisId)}`}
+              state={{ analysisId }}
+              className="hover:text-[#112117] transition-colors font-medium"
+            >
+              Analysis Results
             </Link>
-            <span>/</span>
-            <span className="font-semibold text-[#1D2939]">Change {changeRecord.change_id}</span>
+            <span className="text-[#A3B3A6] select-none">/</span>
+            <span className="font-semibold text-[#112117] bg-[#EDF4ED] text-[#132E22] px-2 py-0.5 rounded-md border border-[#D0E5D5]">
+              Change {changeRecord.change_id}
+            </span>
+          </nav>
+
+          {/* Prominent Elevated Back Button */}
+          <div>
+            <button
+              type="button"
+              onClick={() => navigate(`/analysis/results?id=${encodeURIComponent(analysisId)}`, { state: { analysisId } })}
+              className="inline-flex items-center gap-2 px-3.5 py-2 rounded-xl bg-white border border-[#DCE4DA] text-xs font-semibold text-[#112117] hover:bg-[#F2F6F1] hover:border-[#CAD8C9] shadow-2xs transition-all cursor-pointer group"
+            >
+              <ArrowLeft className="w-4 h-4 text-[#55675C] group-hover:text-[#112117] group-hover:-translate-x-0.5 transition-transform" />
+              <span>Back to Analysis Results</span>
+            </button>
           </div>
-          <Link
-            to="/analysis/results"
-            state={{ analysisId }}
-            className="inline-flex items-center gap-1.5 text-xs font-semibold text-[#344054] hover:text-[#132E22] transition-colors group"
-          >
-            <ArrowLeft className="w-3.5 h-3.5 text-[#667085] group-hover:-translate-x-0.5 transition-transform" />
-            <span>Back to Analysis Results</span>
-          </Link>
         </div>
 
         <div className="flex items-center gap-2.5 flex-wrap sm:flex-nowrap">
           <button
             type="button"
-            onClick={() => navigate('/analysis/results', { state: { analysisId } })}
+            onClick={() => navigate(`/analysis/results?id=${encodeURIComponent(analysisId)}`, { state: { analysisId } })}
             className="inline-flex items-center gap-2 px-3.5 py-2 bg-white hover:bg-[#F9FAFB] text-[#344054] hover:text-[#1D2939] border border-[#D0D5DD] rounded-xl text-xs font-semibold shadow-2xs transition-all cursor-pointer"
           >
             <Eye className="w-3.5 h-3.5 text-[#475467]" />
@@ -235,7 +254,7 @@ ${changeRecord.final_explanation || changeRecord.explanation || 'N/A'}
           {nextChangeId && (
             <button
               type="button"
-              onClick={() => navigate(`/analysis/clause/${nextChangeId}`, { state: { analysisId } })}
+              onClick={() => navigate(`/analysis/clause/${nextChangeId}?id=${encodeURIComponent(analysisId)}`, { state: { analysisId } })}
               className="inline-flex items-center gap-2 px-4 py-2 bg-[#132E22] hover:bg-[#1E4333] text-white rounded-xl text-xs font-semibold shadow-xs transition-all cursor-pointer"
             >
               <span>Next Change</span>

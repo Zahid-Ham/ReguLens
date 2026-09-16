@@ -29,7 +29,11 @@ export default function Sidebar({ mobileOpen = false, onCloseMobile = () => {} }
       name: 'Analysis History',
       path: '/analysis/history',
       icon: Clock,
-      active: location.pathname === '/analysis/history',
+      active:
+        location.pathname === '/analysis/history' ||
+        location.pathname === '/analyses' ||
+        location.pathname.startsWith('/analysis/results') ||
+        location.pathname.startsWith('/analysis/clause'),
     },
     {
       name: 'Regulations Library',

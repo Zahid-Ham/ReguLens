@@ -5,6 +5,7 @@ import NewAnalysis from './pages/NewAnalysis'
 import AppShell from './layouts/AppShell'
 import AnalysisProcessing from './pages/AnalysisProcessing'
 import AnalysisResults from './pages/AnalysisResults'
+import AnalysisHistory from './pages/AnalysisHistory'
 import ClauseDetailView from './pages/ClauseDetailView'
 import { Sparkles, Clock, BookOpen, Lightbulb, Network, Files, Settings, HelpCircle } from 'lucide-react'
 
@@ -82,12 +83,15 @@ export default function App() {
           path="/analysis/history"
           element={
             <AppShell>
-              <PlaceholderScreen
-                title="Analysis History"
-                description="Review previously executed regulatory comparisons, clause alignments, and compliance gap assessments."
-                icon={Clock}
-              />
+              <AnalysisHistory />
             </AppShell>
+          }
+        />
+
+        <Route
+          path="/analyses"
+          element={
+            <Navigate to="/analysis/history" replace />
           }
         />
 

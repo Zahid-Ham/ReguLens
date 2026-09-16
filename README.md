@@ -1,6 +1,10 @@
-# ReguLens — NLP-Based Regulatory Change Detection & Compliance Intelligence
-
 <div align="center">
+
+<a href="https://github.com/Zahid-Ham/ReguLens">
+  <img src="./assets/regulens_logo.svg" alt="ReguLens Logo" width="380" />
+</a>
+
+# ReguLens — NLP-Based Regulatory Change Detection & Compliance Intelligence
 
 ![ReguLens](https://img.shields.io/badge/ReguLens-Regulatory%20AI-0F172A?style=for-the-badge&logo=shield&logoColor=38BDF8)
 ![Python](https://img.shields.io/badge/Python-3.10+-3776AB?style=for-the-badge&logo=python&logoColor=white)

@@ -148,8 +148,44 @@ export async function getDocumentNlp(documentId) {
 // =============================================================================
 // Analysis Workflow & Jobs
 // =============================================================================
+// Analysis History & Persistence
+// =============================================================================
 
+export async function getAnalyses({
+  search,
+  status,
+  date_filter,
+  document_type,
+  page = 1,
+  page_size = 10,
+} = {}) {
+  const params = new URLSearchParams()
+  if (search && search.trim()) params.append('search', search.trim())
+  if (status && status !== 'all') params.append('status', status)
+  if (date_filter && date_filter !== 'all') params.append('date_filter', date_filter)
+  if (document_type && document_type !== 'all') params.append('document_type', document_type)
+  if (page !== undefined) params.append('page', page)
+  if (page_size !== undefined) params.append('page_size', page_size)
 
+  const queryString = params.toString() ? `?${params.toString()}` : ''
+  return request(`/api/analyses${queryString}`)
+}
+
+export async function getAnalysisDetail(analysisId) {
+  if (!analysisId) throw new Error('analysisId is required')
+  return request(`/api/analyses/${encodeURIComponent(analysisId)}`)
+}
+
+export async function deleteAnalysis(analysisId) {
+  if (!analysisId) throw new Error('analysisId is required')
+  return request(`/api/analyses/${encodeURIComponent(analysisId)}`, {
+    method: 'DELETE',
+  })
+}
+
+// =============================================================================
+// Analysis Workflow & Jobs
+// =============================================================================
 
 export async function createAnalysis({
   previous_document_id,
@@ -309,6 +345,29 @@ export async function explainPolicyMappingRecord(analysisId, mappingId) {
 }
 
 // =============================================================================
+// AI Advisory Insights (Groq + Evidence Grounded)
+// =============================================================================
+
+export async function getAnalysisInsights(analysisId) {
+  if (!analysisId) throw new Error('analysisId is required')
+  return request(`/api/analysis/${encodeURIComponent(analysisId)}/insights`)
+}
+
+export async function refreshAnalysisInsights(analysisId) {
+  if (!analysisId) throw new Error('analysisId is required')
+  return request(`/api/analysis/${encodeURIComponent(analysisId)}/insights/refresh`, {
+    method: 'POST',
+  })
+}
+
+export async function getAnalysisInsightDetail(analysisId, insightId) {
+  if (!analysisId || !insightId) throw new Error('analysisId and insightId are required')
+  return request(
+    `/api/analysis/${encodeURIComponent(analysisId)}/insights/${encodeURIComponent(insightId)}`
+  )
+}
+
+// =============================================================================
 // Health & Integrity
 // =============================================================================
 
@@ -319,4 +378,5 @@ export async function getHealth() {
 export async function getHealthIntegrity() {
   return request('/api/health/integrity')
 }
+
 

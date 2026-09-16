@@ -4,10 +4,12 @@ from functools import lru_cache
 from fastapi import Depends
 
 from app.config import Settings, get_settings
+from app.services.analysis_history_service import AnalysisHistoryService
 from app.services.analysis_job_service import AnalysisJobService
 from app.services.analysis_service import AnalysisService
 from app.services.data_repository import DataRepository
 from app.services.document_upload_service import DocumentUploadService
+from app.services.compliance.groq_insights_service import GroqInsightsService
 from app.services.compliance.groq_service import GroqService
 from app.services.compliance.policy_mapping_service import PolicyMappingService
 from app.services.compliance.policy_nlp_service import PolicyNLPService
@@ -15,6 +17,19 @@ from app.services.dynamic_comparison_service import DynamicComparisonService
 from app.services.dynamic_nlp_pipeline import DynamicNLPPipeline
 from app.services.nlp_service import NLPService
 from app.services.regulation_service import RegulationService
+
+
+@lru_cache()
+def get_groq_insights_service() -> GroqInsightsService:
+    """Provide a cached GroqInsightsService instance for evidence-grounded advisory intelligence."""
+    return GroqInsightsService()
+
+
+
+@lru_cache()
+def get_analysis_history_service() -> AnalysisHistoryService:
+    """Provide a cached AnalysisHistoryService instance for database persistence."""
+    return AnalysisHistoryService()
 
 
 @lru_cache()
@@ -92,12 +107,5 @@ def get_analysis_job_service() -> AnalysisJobService:
         dynamic_nlp_pipeline=get_dynamic_nlp_pipeline(),
         dynamic_comparison_service=get_dynamic_comparison_service(),
         policy_mapping_service=get_policy_mapping_service(),
+        history_service=get_analysis_history_service(),
     )
-
-
-
-
-
-
-
-

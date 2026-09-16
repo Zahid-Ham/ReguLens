@@ -597,8 +597,77 @@ class PolicyMappingService:
         self._analysis_policy_store[analysis_id] = response
         return response
 
+    def _hydrate_from_db_if_needed(self, analysis_id: str) -> None:
+        """Hydrate policy mapping from SQLite if not in memory."""
+        clean_id = analysis_id.strip()
+        if clean_id in self._analysis_policy_store:
+            return
+
+        try:
+            from app.core.database import SessionLocal
+            from app.models.analysis import AnalysisRecord
+            db = SessionLocal()
+            try:
+                rec = db.query(AnalysisRecord).filter(AnalysisRecord.id == clean_id).first()
+                if rec and rec.company_policy_document_id and rec.policy_mappings_data:
+                    # Reconstruct PolicyMappingSummary and records
+                    sum_data = rec.policy_summary or {}
+                    top_gaps = []
+                    for g in sum_data.get("top_gaps", []):
+                        if isinstance(g, dict):
+                            try:
+                                top_gaps.append(ComplianceGapHighlight(**g))
+                            except Exception:
+                                pass
+                    top_recs = []
+                    for r in sum_data.get("top_recommendations", []):
+                        if isinstance(r, dict):
+                            try:
+                                top_recs.append(PolicyRecommendationHighlight(**r))
+                            except Exception:
+                                pass
+
+                    summary = PolicyMappingSummary(
+                        total_regulatory_requirements=sum_data.get("total_regulatory_requirements") or sum_data.get("total_requirements", 0),
+                        mapped_to_policy=sum_data.get("mapped_to_policy", 0),
+                        coverage_percentage=sum_data.get("coverage_percentage") or sum_data.get("policy_coverage_pct", 0),
+                        policy_gaps=sum_data.get("policy_gaps") or sum_data.get("non_compliant_count", 0),
+                        partial_matches=sum_data.get("partial_matches") or sum_data.get("partial_match_count", 0),
+                        no_match_found=sum_data.get("no_match_found", 0),
+                        compliant_count=sum_data.get("compliant_count", 0),
+                        high_severity_gaps=sum_data.get("high_severity_gaps", 0),
+                        top_gaps=top_gaps,
+                        top_recommendations=top_recs,
+                        executive_summary=sum_data.get("executive_summary", ""),
+                    )
+
+
+                    mappings = []
+                    raw_mappings = rec.policy_mappings_data
+                    if isinstance(raw_mappings, list):
+                        for m_dict in raw_mappings:
+                            if isinstance(m_dict, dict):
+                                try:
+                                    mappings.append(PolicyMappingRecord(**m_dict))
+                                except Exception:
+                                    pass
+
+                    self._analysis_policy_store[clean_id] = PolicyMappingResponse(
+                        analysis_id=clean_id,
+                        has_policy=True,
+                        policy_document_id=rec.company_policy_document_id,
+                        policy_document_title=rec.company_policy_document_title,
+                        summary=summary,
+                        mappings=mappings,
+                    )
+            finally:
+                db.close()
+        except Exception as e:
+            print(f"[PolicyMappingService] Hydration warning: {e}")
+
     def get_policy_mapping(self, analysis_id: str) -> Optional[PolicyMappingResponse]:
         """Retrieve stored policy mapping response for an analysis job."""
+        self._hydrate_from_db_if_needed(analysis_id)
         return self._analysis_policy_store.get(analysis_id.strip())
 
     def get_policy_mapping_record(self, analysis_id: str, mapping_id: str) -> Optional[PolicyMappingRecord]:
