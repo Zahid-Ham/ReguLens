@@ -1,7 +1,7 @@
 <div align="center">
 
 <a href="https://github.com/Zahid-Ham/ReguLens">
-  <img src="./assets/regulens_logo.svg" alt="ReguLens Logo" width="380" />
+  <img src="./assets/regulens_logo.svg" alt="ReguLens Logo" width="440" />
 </a>
 
 # ReguLens — NLP-Based Regulatory Change Detection & Compliance Intelligence

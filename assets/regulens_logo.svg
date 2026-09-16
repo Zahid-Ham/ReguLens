@@ -1,45 +1,49 @@
-<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 420 100" fill="none" width="420" height="100">
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 460 100" fill="none" width="460" height="100">
   <defs>
-    <linearGradient id="leafGrad" x1="0%" y1="0%" x2="100%" y2="100%">
+    <linearGradient id="emblemBg" x1="0%" y1="0%" x2="100%" y2="100%">
       <stop offset="0%" stop-color="#132E22"/>
-      <stop offset="100%" stop-color="#285C45"/>
+      <stop offset="100%" stop-color="#1E4333"/>
     </linearGradient>
-    <linearGradient id="accentGrad" x1="0%" y1="0%" x2="100%" y2="100%">
-      <stop offset="0%" stop-color="#1E4D37"/>
-      <stop offset="100%" stop-color="#3B8262"/>
+    <linearGradient id="leafGradLight" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#34D399"/>
+      <stop offset="100%" stop-color="#10B981"/>
     </linearGradient>
-    <filter id="subtleShadow" x="-10%" y="-10%" width="130%" height="130%">
-      <feDropShadow dx="0" dy="2" stdDeviation="3" flood-color="#132E22" flood-opacity="0.12"/>
+    <linearGradient id="accentGradLight" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#6EE7B7"/>
+      <stop offset="100%" stop-color="#A7F3D0"/>
+    </linearGradient>
+    <filter id="glowShadow" x="-20%" y="-20%" width="140%" height="140%">
+      <feDropShadow dx="0" dy="2" stdDeviation="4" flood-color="#10B981" flood-opacity="0.25"/>
     </filter>
   </defs>
 
-  <!-- Emblem Background Container -->
-  <g transform="translate(10, 10)" filter="url(#subtleShadow)">
-    <rect x="0" y="0" width="80" height="80" rx="20" fill="#FAFBF9" stroke="#E2EBE1" stroke-width="1.5"/>
+  <!-- Emblem Background Icon Box -->
+  <g transform="translate(10, 10)" filter="url(#glowShadow)">
+    <rect x="0" y="0" width="80" height="80" rx="20" fill="url(#emblemBg)" stroke="#2D5A43" stroke-width="1.8"/>
     
     <!-- Precision Geometric Leaf-Lens Emblem -->
     <g transform="translate(12, 12)">
       <!-- Main Stem -->
-      <path d="M28 6V50" stroke="url(#leafGrad)" stroke-width="3.5" stroke-linecap="round"/>
+      <path d="M28 6V50" stroke="#FFFFFF" stroke-width="3.5" stroke-linecap="round"/>
       
       <!-- Left Leaf Blades / NLP Lens Facets -->
-      <path d="M28 14C20.5 14 14 19 11.5 26.5C15 25.5 21.5 24 28 25.5" stroke="url(#leafGrad)" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"/>
-      <path d="M28 25.5C19 25.5 12 31 9 39C13.5 37.5 21.5 35 28 36.5" stroke="url(#leafGrad)" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"/>
-      <path d="M28 36.5C21.5 36.5 15.5 41 13 47.5C18 46 23.5 44.5 28 45.5" stroke="url(#leafGrad)" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"/>
+      <path d="M28 14C20.5 14 14 19 11.5 26.5C15 25.5 21.5 24 28 25.5" stroke="url(#leafGradLight)" stroke-width="3.2" stroke-linecap="round" stroke-linejoin="round"/>
+      <path d="M28 25.5C19 25.5 12 31 9 39C13.5 37.5 21.5 35 28 36.5" stroke="url(#leafGradLight)" stroke-width="3.2" stroke-linecap="round" stroke-linejoin="round"/>
+      <path d="M28 36.5C21.5 36.5 15.5 41 13 47.5C18 46 23.5 44.5 28 45.5" stroke="url(#leafGradLight)" stroke-width="3.2" stroke-linecap="round" stroke-linejoin="round"/>
       
       <!-- Right Leaf Blades / Regulatory Alignment Facets -->
-      <path d="M28 10C35.5 10 42 15 44.5 22.5C41 21.5 34.5 20 28 21.5" stroke="url(#accentGrad)" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"/>
-      <path d="M28 21.5C37 21.5 44 27 47 35C42.5 33.5 34.5 31 28 32.5" stroke="url(#accentGrad)" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"/>
-      <path d="M28 32.5C34.5 32.5 40.5 37 43 43.5C38 42 32.5 40.5 28 41.5" stroke="url(#accentGrad)" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"/>
+      <path d="M28 10C35.5 10 42 15 44.5 22.5C41 21.5 34.5 20 28 21.5" stroke="url(#accentGradLight)" stroke-width="3.2" stroke-linecap="round" stroke-linejoin="round"/>
+      <path d="M28 21.5C37 21.5 44 27 47 35C42.5 33.5 34.5 31 28 32.5" stroke="url(#accentGradLight)" stroke-width="3.2" stroke-linecap="round" stroke-linejoin="round"/>
+      <path d="M28 32.5C34.5 32.5 40.5 37 43 43.5C38 42 32.5 40.5 28 41.5" stroke="url(#accentGradLight)" stroke-width="3.2" stroke-linecap="round" stroke-linejoin="round"/>
     </g>
   </g>
 
-  <!-- Brand Typography -->
+  <!-- Brand Typography in White & Emerald for High Contrast -->
   <g transform="translate(108, 18)">
-    <text x="0" y="42" font-family="-apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif" font-size="40" font-weight="800" fill="#112117" letter-spacing="-0.04em">
-      Regu<tspan fill="#2C634D" font-weight="600">Lens</tspan>
+    <text x="0" y="42" font-family="-apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif" font-size="42" font-weight="800" fill="#FFFFFF" letter-spacing="-0.03em">
+      Regu<tspan fill="#34D399" font-weight="600">Lens</tspan>
     </text>
-    <text x="2" y="62" font-family="-apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif" font-size="12" font-weight="500" fill="#55675C" letter-spacing="0.01em">
+    <text x="2" y="62" font-family="-apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif" font-size="12.5" font-weight="500" fill="#CBD5E1" letter-spacing="0.01em">
       Understand Regulations. Accelerate Compliance.
     </text>
   </g>
