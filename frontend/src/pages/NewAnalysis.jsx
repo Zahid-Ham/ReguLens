@@ -1,6 +1,6 @@
-import React, { useState } from 'react'
+import React, { useState, useEffect } from 'react'
 import { motion } from 'framer-motion'
-import { useNavigate } from 'react-router-dom'
+import { useNavigate, useLocation, useSearchParams } from 'react-router-dom'
 import {
   ArrowRight,
   Database,
@@ -20,7 +20,7 @@ import SelectedDocument from '../components/documents/SelectedDocument'
 import DocumentLibraryModal from '../components/documents/DocumentLibraryModal'
 import AnalysisConfiguration from '../components/analysis/AnalysisConfiguration'
 import AnalysisPipeline from '../components/analysis/AnalysisPipeline'
-import { createAnalysis } from '../services/api'
+import { createAnalysis, getRegulation } from '../services/api'
 import {
   DEMO_PREVIOUS_DOC,
   DEMO_CURRENT_DOC,
@@ -31,11 +31,39 @@ import rbiFacadeImage from '../assets/rbi_facade.jpg'
 
 export default function NewAnalysis() {
   const navigate = useNavigate()
+  const location = useLocation()
+  const [searchParams] = useSearchParams()
 
   // State for selected documents
   const [previousDoc, setPreviousDoc] = useState(null)
   const [currentDoc, setCurrentDoc] = useState(null)
   const [policyDoc, setPolicyDoc] = useState(null)
+
+  // Handle incoming preselection from Regulations Library
+  useEffect(() => {
+    if (location.state?.selectedDoc) {
+      const target = location.state.target || 'current'
+      if (target === 'previous') {
+        setPreviousDoc(location.state.selectedDoc)
+      } else {
+        setCurrentDoc(location.state.selectedDoc)
+      }
+    } else if (location.state?.previousDoc || location.state?.currentDoc) {
+      if (location.state.previousDoc) setPreviousDoc(location.state.previousDoc)
+      if (location.state.currentDoc) setCurrentDoc(location.state.currentDoc)
+    }
+
+    const currId = searchParams.get('current') || searchParams.get('current_doc_id')
+    const prevId = searchParams.get('previous') || searchParams.get('previous_doc_id')
+
+    if (currId && !currentDoc) {
+      getRegulation(currId).then((d) => setCurrentDoc(d)).catch(() => {})
+    }
+    if (prevId && !previousDoc) {
+      getRegulation(prevId).then((d) => setPreviousDoc(d)).catch(() => {})
+    }
+  }, [location.state, searchParams])
+
 
   // Library modal state
   const [libraryModalOpen, setLibraryModalOpen] = useState(false)

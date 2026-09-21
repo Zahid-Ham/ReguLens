@@ -128,3 +128,43 @@ def test_get_unknown_document_returns_404(client):
     data = response.json()
     assert "detail" in data
     assert "not found" in data["detail"].lower()
+
+
+def test_get_regulations_metrics(client):
+    """Test GET /api/regulations/metrics returns real calculated totals."""
+    response = client.get("/api/regulations/metrics")
+    assert response.status_code == 200
+    metrics = response.json()
+    assert "total_documents" in metrics
+    assert "regulatory_authorities_count" in metrics
+    assert "document_categories_count" in metrics
+    assert "processed_count" in metrics
+    assert metrics["total_documents"] >= 40
+    assert metrics["regulatory_authorities_count"] >= 1
+    assert metrics["document_categories_count"] >= 3
+    assert metrics["processed_count"] >= 40
+
+
+def test_get_regulations_filters(client):
+    """Test GET /api/regulations/filters returns distinct filter options."""
+    response = client.get("/api/regulations/filters")
+    assert response.status_code == 200
+    filters = response.json()
+    assert "regulators" in filters
+    assert "categories" in filters
+    assert "statuses" in filters
+    assert "years" in filters
+    assert len(filters["regulators"]) >= 1
+    assert "Priority Sector Lending" in filters["categories"]
+
+
+def test_psl_related_documents_link(client):
+    """Test that PSL 2025 detail has PSL 2020 linked in related_documents."""
+    response = client.get("/api/regulations/rbi_a8d0f9a98495")
+    assert response.status_code == 200
+    doc = response.json()
+    assert "related_documents" in doc
+    assert len(doc["related_documents"]) >= 1
+    related_ids = [r["document_id"] for r in doc["related_documents"]]
+    assert "rbi_psl_2020_official" in related_ids
+

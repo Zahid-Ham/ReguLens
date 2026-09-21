@@ -109,3 +109,43 @@ def get_analysis_job_service() -> AnalysisJobService:
         policy_mapping_service=get_policy_mapping_service(),
         history_service=get_analysis_history_service(),
     )
+
+
+@lru_cache()
+def get_insights_aggregation_service() -> "InsightsAggregationService":
+    """Provide a cached InsightsAggregationService instance."""
+    from app.services.insights.insights_aggregation_service import InsightsAggregationService
+    return InsightsAggregationService(
+        analysis_service=get_analysis_service(),
+        policy_mapping_service=get_policy_mapping_service(),
+    )
+
+
+@lru_cache()
+def get_insights_ai_service() -> "InsightsAIService":
+    """Provide a cached InsightsAIService instance."""
+    from app.services.insights.insights_ai_service import InsightsAIService
+    return InsightsAIService()
+
+
+@lru_cache()
+def get_global_insights_service() -> "GlobalInsightsService":
+    """Provide a cached GlobalInsightsService instance."""
+    from app.services.insights.insights_service import GlobalInsightsService
+    return GlobalInsightsService(
+        aggregation_service=get_insights_aggregation_service(),
+        ai_service=get_insights_ai_service(),
+    )
+
+
+@lru_cache()
+def get_nlp_explorer_service() -> "NLPExplorerService":
+    """Provide a cached NLPExplorerService instance for technical NLP exploration."""
+    from app.services.nlp.nlp_explorer_service import NLPExplorerService
+    return NLPExplorerService(
+        data_repo=get_data_repository(),
+        dynamic_nlp=get_dynamic_nlp_pipeline(),
+        upload_service=get_document_upload_service(),
+    )
+
+

@@ -7,6 +7,9 @@ import AnalysisProcessing from './pages/AnalysisProcessing'
 import AnalysisResults from './pages/AnalysisResults'
 import AnalysisHistory from './pages/AnalysisHistory'
 import ClauseDetailView from './pages/ClauseDetailView'
+import Insights from './pages/Insights'
+import NLPExplorer from './pages/NLPExplorer'
+import RegulationsLibrary from './pages/RegulationsLibrary'
 import { Sparkles, Clock, BookOpen, Lightbulb, Network, Files, Settings, HelpCircle } from 'lucide-react'
 
 // Placeholder view component for future screens
@@ -99,24 +102,17 @@ export default function App() {
           path="/regulations"
           element={
             <AppShell>
-              <PlaceholderScreen
-                title="Regulations Library"
-                description="Browse, filter, and inspect pre-processed RBI Master Directions, circulars, and regulatory datasets."
-                icon={BookOpen}
-              />
+              <RegulationsLibrary />
             </AppShell>
           }
         />
+
 
         <Route
           path="/insights"
           element={
             <AppShell>
-              <PlaceholderScreen
-                title="Regulatory Insights"
-                description="Domain-specific intelligence across PSL, Digital Lending, KYC, and prudential banking norms."
-                icon={Lightbulb}
-              />
+              <Insights />
             </AppShell>
           }
         />
@@ -125,11 +121,7 @@ export default function App() {
           path="/nlp-explorer"
           element={
             <AppShell>
-              <PlaceholderScreen
-                title="NLP Explorer & Clause Classifier"
-                description="Interactive clause-level breakdown, token attribution, lemmatization inspection, and POS tagging."
-                icon={Network}
-              />
+              <NLPExplorer />
             </AppShell>
           }
         />
